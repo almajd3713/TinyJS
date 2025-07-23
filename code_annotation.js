@@ -18,27 +18,25 @@ const runIsolated = (code) => {
     try {
         vm.runInContext(code, ctx);
     } catch (error) {
-        console.error('Error executing code:', error); 
+        return false 
     }
     return captured;
 }
 
 const programs = JSON.parse(fs.readFileSync(path.join('output', 'output_raw.json'), 'utf8'))
 
-const original_console_log = console.log;
-const original_console_info = console.info;
-
 const new_programs = programs.map(program => {
     const code = program.script
     
     const captured = runIsolated(code);
 
-    console.log('code:', code);
-    console.log('Captured output:', captured);
+    if (!captured) return;
     return {
         ...program,
         output: '# ' + captured.join('\n# ')
     }
-})
+}).filter(program => program !== undefined);
+
+console.log(programs.length - new_programs.length, 'programs were dropped');
 
 fs.writeFileSync(path.join('output', 'output.json'), JSON.stringify(new_programs, null, 4), 'utf8')

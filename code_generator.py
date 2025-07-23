@@ -2,6 +2,7 @@ from anytree import Node, RenderTree
 from grammer_rules import get_grammer
 from dataclasses import dataclass
 from tqdm.auto import tqdm
+import traceback
 
 import psutil
 import time
@@ -59,7 +60,11 @@ class CodeGenerator:
                 current_variables[var_name] = variable_val
             
             if symbol == 'ASSIGNMENT_SIMPLE' or symbol == 'ASSIGNMENT_COMPLEX':
-                if generated_symbols[3]:
+                if len(generated_symbols) >= 4:
+                    selected_var = generated_symbols[3]
+                    if selected_var in ['var', 'let']:
+                        selected_var = generated_symbols[4]
+                    print(generated_symbols)
                     used_variables.add(generated_symbols[3])
                     current_variables[generated_symbols[3]] = generated_symbols[7] \
                         .replace('SPACE', ' ').replace('NEW_LINE', '\n').replace('TAB', '\t')
@@ -100,7 +105,9 @@ class CodeGenerator:
                 self.max_initialized_vars = 2
             case '1.2':
                 self.max_initialized_vars = 3
-            case _:
+            case '2.1':
+                self.max_initialized_vars = 2
+            case 'ALL':
                 self.max_initialized_vars = 3
         
         if level == 'ALL': level_passed = level
@@ -148,7 +155,10 @@ class CodeGenerator:
                         if num_tries >= max_tries:
                             print(f"Max tries reached: {max_tries}. Stopping generation.")
                             break
-            except:
+            except Exception as e:
+                if DEBUG:
+                    print(f"Error generating program: {e}")
+                    traceback.print_exc()
                 continue
         
         with open(output_file, 'w') as f:
