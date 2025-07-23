@@ -17,12 +17,16 @@ class Program:
     script: str
     output: str
     hash: str
+    initialized_variables: dict = None
+    used_variables: set = None
 
     def to_dict(self):
         return {
             'script': self.script,
             'output': self.output,
-            'hash': self.hash
+            'hash': self.hash,
+            'initialized_variables': self.initialized_variables if self.initialized_variables else {},
+            'used_variables': list(self.used_variables) if self.used_variables else []
         }
     
     def __str__(self):
@@ -50,13 +54,15 @@ class CodeGenerator:
             generated_symbols = [self.generate_code(s, current_variables, used_variables, node) for s in symbols]
                         
             if symbol == 'INITIALIZATION':
-                var_name = generated_symbols[0]
-                variable_val = generated_symbols[4] # Check grammer rules for a sanity check
+                var_name = generated_symbols[2]
+                variable_val = generated_symbols[6] # Check grammer rules for a sanity check
                 current_variables[var_name] = variable_val
             
             if symbol == 'ASSIGNMENT_SIMPLE' or symbol == 'ASSIGNMENT_COMPLEX':
-                if generated_symbols[0]:
-                    used_variables.add(generated_symbols[0])
+                if generated_symbols[3]:
+                    used_variables.add(generated_symbols[3])
+                    current_variables[generated_symbols[3]] = generated_symbols[7] \
+                        .replace('SPACE', ' ').replace('NEW_LINE', '\n').replace('TAB', '\t')
             
             return ''.join(generated_symbols)
         
@@ -105,9 +111,9 @@ class CodeGenerator:
         program = program \
             .replace('SPACE', ' ') \
             .replace('NEW_LINE', '\n') \
-            .replace('TAB', '\t')
-        
-        return root, program
+            .replace('TAB', '\t')\
+            .lstrip()
+        return root, program, current_variables, used_variables
     
     def generate_and_write_program(self, num_programs, level, output_file='output/output_raw.json', deduplicate=True):
         output_dict = [] # Hash, script, output
@@ -123,12 +129,12 @@ class CodeGenerator:
         
         while generated_programs < num_programs:
             try:
-                root, script = self.generate_program(level)
+                root, script, initialized_variables, used_variables = self.generate_program(level)
                 if DEBUG:
                     self.print_tree(root)
                 program_hash = hashlib.sha256(script.encode('utf-8')).hexdigest()
 
-                program = Program(script=script, output='', hash=program_hash)
+                program = Program(script=script, output='', hash=program_hash, initialized_variables=initialized_variables, used_variables=used_variables)
                 
                 if deduplicate:
                     if program_hash not in hashes:
@@ -142,7 +148,7 @@ class CodeGenerator:
                         if num_tries >= max_tries:
                             print(f"Max tries reached: {max_tries}. Stopping generation.")
                             break
-            except Exception as e:
+            except:
                 continue
         
         with open(output_file, 'w') as f:
