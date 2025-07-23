@@ -3,7 +3,7 @@
 grammer_rules: dict[str, list[str]] = {
     # Variable values
     "VARIABLE": ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"],
-    "DIGIT": "To be populated by code",
+    "DIGIT": [str(i) for i in range(256)],
     
     # Arithmetics and operators
     "ARITHMETIC_OPERATOR": ["+", "-", "*", "/", "%", "**"],
@@ -14,15 +14,13 @@ grammer_rules: dict[str, list[str]] = {
     "OPERATOR": ["ARITHMETIC_OPERATOR"],
 
     # Formatting
-    "NEW_LINE": ["\n"],
     "TAB": ["\t"],
     "PARENTHESIS_OPEN": ["("],
     "PARENTHESIS_CLOSE": [")"],
     "EQUALS": ["="],
     "COLON": [":"],
     "COMMA": [","],
-    "SEMICOLON_TERM": [";"],
-    "SEMICOLON": ["SEMICOLON", ""],
+    "SEMICOLON": [";", ""],
 
     # Keywords
     "VAR": ["var"],
@@ -44,18 +42,18 @@ grammer_rules: dict[str, list[str]] = {
         'EXPRESSION_IDENTIFIER SPACE OPERATOR SPACE DIGIT'
     ],
     
-    "IDENTIFIER_INITIALIZATION": ["INDENTIFIER_INITIALIZATION INITIALIZATION SEMICOLON", "INITIALIZATION SEMICOLON"],
+    "IDENTIFIER_INITIALIZATION": ["IDENTIFIER_INITIALIZATION INITIALIZATION SEMICOLON", "INITIALIZATION SEMICOLON"],
     "INITIALIZATION": ['VARIABLE SPACE EQUALS SPACE DIGIT SEMICOLON NEW_LINE'],
     
     "SIMPLE_ARITHMETIC_EXPRESSION": [
-        'SIMPLE_ARITHMETIC_EXPRESSION ARITHMETIC_OPERATOR ENCLOSED_EXPRESSION',
-        'ENCLOSED_EXPRESSION'
+        'SIMPLE_ARITHMETIC_EXPRESSION ARITHMETIC_OPERATOR EXPRESSION_ENCLOSED',
+        'EXPRESSION_ENCLOSED'
     ],
     
     "ASSIGNMENT_SIMPLE": ['VARIABLE SPACE EQUALS SPACE EXPRESSION SEMICOLON NEW_LINE'],
     "ASSIGNMENT_COMPLEX": [
         'VARIABLE SPACE EQUALS SPACE SIMPLE_ARITHMETIC_EXPRESSION SEMICOLON NEW_LINE'
-        'VARIABLE SPACE EQUALS SPACE EXPRESSION SEMICOLON NEW_LINE'
+        'VARIABLE SPACE EQUALS SPACE EXPRESSION SEMICOLON NEW_LINE',
         ''
     ],
     
@@ -64,8 +62,8 @@ grammer_rules: dict[str, list[str]] = {
     
     
     # Levels of complexity
-    "LEVEL_1.1": ['IDENTIFIER_INITIALIZATION ASSIGNMENT_SIMPLE ADVANCED_DISPLAY'],
-    "LEVEL_1.2": ['IDENTIFIER_INITIALIZATION ASSIGNMENT_COMPLEX ADVANCED_DISPLAY'],
+    "LEVEL_1.1": ['IDENTIFIER_INITIALIZATION ASSIGNMENT_SIMPLE DISPLAY_COMPLEX'],
+    "LEVEL_1.2": ['IDENTIFIER_INITIALIZATION ASSIGNMENT_COMPLEX DISPLAY_COMPLEX'],
     
     "ALL": ['LEVEL_1.1', 'LEVEL_1.2'],
 }

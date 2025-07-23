@@ -1,10 +1,16 @@
 from anytree import Node, RenderTree
 from grammer_rules import get_grammer
 from dataclasses import dataclass
+from tqdm.auto import tqdm
+
+import psutil
+import time
 import hashlib
 import os
 import json
 import random
+
+DEBUG = False
 
 @dataclass
 class Program:
@@ -24,7 +30,7 @@ class Program:
 
 
 class CodeGenerator:
-    def __inti__(self, max_initialized_vars=3):
+    def __init__(self, max_initialized_vars=3):
         self.max_initialized_vars = max_initialized_vars
         self.var_count = 0
         self.grammer = get_grammer()
@@ -52,7 +58,7 @@ class CodeGenerator:
                 if generated_symbols[0]:
                     used_variables.add(generated_symbols[0])
             
-            return ' '.join(generated_symbols)
+            return ''.join(generated_symbols)
         
         if symbol == 'EXPRESSION_IDENTIFIER':
             identifier = random.choice(
@@ -69,6 +75,10 @@ class CodeGenerator:
         
         else: return symbol;
     
+    def memory_usage(self):
+        process = psutil.Process(os.getpid())
+        mem = process.memory_info().rss / (1024 * 1024)
+        return mem
     
     def print_tree(self, root):
         for pre, _, node in RenderTree(root):
@@ -92,7 +102,10 @@ class CodeGenerator:
         
         program = self.generate_code(level_passed, current_variables, used_variables, root)
         
-        program = program.replace('SPACE', ' ')
+        program = program \
+            .replace('SPACE', ' ') \
+            .replace('NEW_LINE', '\n') \
+            .replace('TAB', '\t')
         
         return root, program
     
@@ -101,9 +114,18 @@ class CodeGenerator:
         generated_programs = 0
         hashes = set()
         
+        start_time = time.time()
+        start_mem = self.memory_usage()
+        max_tries = 1000
+        num_tries = 0
+        
+        pbar = tqdm(total=num_programs, desc="Generating Programs", unit="program")
+        
         while generated_programs < num_programs:
             try:
                 root, script = self.generate_program(level)
+                if DEBUG:
+                    self.print_tree(root)
                 program_hash = hashlib.sha256(script.encode('utf-8')).hexdigest()
 
                 program = Program(script=script, output='', hash=program_hash)
@@ -113,10 +135,18 @@ class CodeGenerator:
                         hashes.add(program_hash)
                         output_dict.append(program.to_dict())
                         generated_programs += 1
-            except: continue
-            
-            with open(output_file, 'w') as f:
-                json.dump(output_dict, f, indent=4)
+                        pbar.update(1)
+                        num_tries = 0
+                    else:
+                        num_tries += 1
+                        if num_tries >= max_tries:
+                            print(f"Max tries reached: {max_tries}. Stopping generation.")
+                            break
+            except Exception as e:
+                continue
+        
+        with open(output_file, 'w') as f:
+            json.dump(output_dict, f, indent=4)
                     
             
 def main():
