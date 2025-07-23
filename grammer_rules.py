@@ -33,6 +33,7 @@ grammer_rules: dict[str, list[str]] = {
     "FOR": ["for"],
     "WHILE": ["while"],
     "OF": ["of"],
+    "PRINT": ['console.log', 'console.info'],
     
     # Terms and Expressions
     "TERM": ["EXPRESSION_IDENTIFIER", "DIGIT"], # Expression identifier for existing variables, else pick a random digit
@@ -58,6 +59,9 @@ grammer_rules: dict[str, list[str]] = {
         ''
     ],
     
+    'DISPLAY_SIMPLE': ['PRINT PARENTHESIS_OPEN DISPLAY_IDENTIFIER PARENTHESIS_CLOSE SEMICOLON NEW_LINE'],
+    'DISPLAY_COMPLEX': ['PRINT PARENTHESIS_OPEN EXPRESSION_DISPLAY PARENTHESIS_CLOSE SEMICOLON NEW_LINE'],
+    
     
     # Levels of complexity
     "LEVEL_1.1": ['IDENTIFIER_INITIALIZATION ASSIGNMENT_SIMPLE ADVANCED_DISPLAY'],
@@ -65,3 +69,5 @@ grammer_rules: dict[str, list[str]] = {
     
     "ALL": ['LEVEL_1.1', 'LEVEL_1.2'],
 }
+
+def get_grammer(): return grammer_rules
