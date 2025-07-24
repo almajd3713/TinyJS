@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import { fileURLToPath } from 'url';
 import vm from 'vm'
 
 const runIsolated = (code) => {
@@ -18,9 +19,15 @@ const runIsolated = (code) => {
     try {
         vm.runInContext(code, ctx);
     } catch (error) {
+        fs.writeFileSync(path.join('output', 'error.log'), `Error executing code: ${error.message}\nCode:\n${code}`, { flag: 'a' });
         return false 
     }
     return captured;
+}
+
+const errorLogPath = path.join('output', 'error.log');
+if (fs.existsSync(errorLogPath)) {
+    fs.unlinkSync(errorLogPath);
 }
 
 const programs = JSON.parse(fs.readFileSync(path.join('output', 'output_raw.json'), 'utf8'))

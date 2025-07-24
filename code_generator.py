@@ -12,6 +12,7 @@ import json
 import random
 
 DEBUG = False
+DEBUG_ERRORS = True
 
 @dataclass
 class Program:
@@ -55,18 +56,19 @@ class CodeGenerator:
             generated_symbols = [self.generate_code(s, current_variables, used_variables, node) for s in symbols]
                         
             if symbol == 'INITIALIZATION':
-                var_name = generated_symbols[2]
-                variable_val = generated_symbols[6] # Check grammer rules for a sanity check
+                var_name = generated_symbols[3]
+                variable_val = generated_symbols[7] # Check grammer rules for a sanity check
                 current_variables[var_name] = variable_val
             
             if symbol == 'ASSIGNMENT_SIMPLE' or symbol == 'ASSIGNMENT_COMPLEX':
                 if len(generated_symbols) >= 4:
-                    selected_var = generated_symbols[3]
+                    selected_var = generated_symbols[1]
+                    selected_var_value = generated_symbols[5]
                     if selected_var in ['var', 'let']:
-                        selected_var = generated_symbols[4]
-                    print(generated_symbols)
-                    used_variables.add(generated_symbols[3])
-                    current_variables[generated_symbols[3]] = generated_symbols[7] \
+                        selected_var = generated_symbols[3]
+                        selected_var_value = generated_symbols[7]
+                    used_variables.add(selected_var)
+                    current_variables[selected_var] = selected_var_value \
                         .replace('SPACE', ' ').replace('NEW_LINE', '\n').replace('TAB', '\t')
             
             return ''.join(generated_symbols)
@@ -108,7 +110,7 @@ class CodeGenerator:
             case '2.1':
                 self.max_initialized_vars = 2
             case 'ALL':
-                self.max_initialized_vars = 3
+                self.max_initialized_vars = 5
         
         if level == 'ALL': level_passed = level
         else: level_passed = f'LEVEL_{level}'
@@ -156,7 +158,7 @@ class CodeGenerator:
                             print(f"Max tries reached: {max_tries}. Stopping generation.")
                             break
             except Exception as e:
-                if DEBUG:
+                if DEBUG_ERRORS:
                     print(f"Error generating program: {e}")
                     traceback.print_exc()
                 continue
