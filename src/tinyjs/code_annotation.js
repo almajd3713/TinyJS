@@ -1,7 +1,13 @@
 import fs from 'fs'
 import path from 'path'
-import { fileURLToPath } from 'url';
 import vm from 'vm'
+import { argv } from 'process'
+
+
+const input_path = argv[2]
+const output_path = input_path.replace('temp_input.json', 'temp_output.json')
+const error_path = input_path.replace('temp_input.json', 'error.log')
+
 
 const runIsolated = (code) => {
     const captured = [];
@@ -19,7 +25,7 @@ const runIsolated = (code) => {
     try {
         vm.runInContext(code, ctx);
     } catch (error) {
-        fs.writeFileSync(path.join('output', 'error.log'), `Error executing code: ${error.message}\nCode:\n${code}`, { flag: 'a' });
+        fs.writeFileSync(error_path, `Error executing code: ${error.message}\nCode:\n${code}`, { flag: 'a' });
         return false 
     }
     return captured;
@@ -30,7 +36,8 @@ if (fs.existsSync(errorLogPath)) {
     fs.unlinkSync(errorLogPath);
 }
 
-const programs = JSON.parse(fs.readFileSync('temp_input.json', 'utf8'))
+
+const programs = JSON.parse(fs.readFileSync(input_path, 'utf8'))
 
 const new_programs = programs.map(program => {
     const code = program.script
@@ -46,4 +53,4 @@ const new_programs = programs.map(program => {
 
 console.log(programs.length - new_programs.length, 'programs were dropped');
 
-fs.writeFileSync('temp_output.json', JSON.stringify(new_programs, null, 4), 'utf8')
+fs.writeFileSync(output_path, JSON.stringify(new_programs, null, 4), 'utf8')

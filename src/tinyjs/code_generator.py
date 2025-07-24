@@ -13,6 +13,8 @@ import subprocess
 DEBUG = False
 DEBUG_ERRORS = True
 
+PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 @dataclass
 class Program:
     script: str
@@ -240,15 +242,17 @@ def annotate_program(input_dict, level='ALL'):
     if 'nodejs' not in os.environ.get('PATH', ''):
         raise EnvironmentError("Node.js is not installed or not in PATH.")
     # Save input into temporary json file
-    temp_input_file = 'temp_input.json'
+    try: os.mkdir('temp')
+    except: pass
+    temp_input_file = os.path.abspath(os.path.join('temp', 'temp_input.json'))
     with open(temp_input_file, 'w') as f:
         json.dump(input_dict, f, indent=4)
     # Run the nodejs script to annotate the program
     required_amount = len(input_dict)
     output_list = []
-    subprocess.run(['npm', 'run', 'annotate'], check=True)
+    subprocess.run(['npm', 'run', 'annotate', temp_input_file], check=True, cwd=PACKAGE_DIR)
     # Read temporary output file
-    temp_output_file = 'temp_output.json'
+    temp_output_file = os.path.abspath(os.path.join('temp', 'temp_output.json'))
     with open(temp_output_file, 'r') as f:
         output_dict = json.load(f)
     # Check if its the same length, otherwise create more programs
@@ -256,22 +260,20 @@ def annotate_program(input_dict, level='ALL'):
         additional_output = create_program(level, required_amount - len(output_dict), annotated=True)
         output_dict.extend(additional_output)
     # Remove temp files
-    os.remove(temp_input_file)
-    os.remove(temp_output_file)
+    if os.path.exists(temp_input_file):
+        os.remove(temp_input_file)
+    if os.path.exists(temp_output_file):
+        os.remove(temp_output_file)
     return output_dict
     
 
 def main():
-    generator = CodeGenerator()
-    num_programs = 1000
-    level = 'ALL'
-    output_file = 'output/output_raw.json'
+    output_file = os.path.join('output', 'programs.json')
     
     if not os.path.exists('output'):
         os.makedirs('output')
     
-    output = generator.generate_and_write_program(num_programs, level, deduplicate=True)
-    print(f"Generated {num_programs} programs at level {level} and saved to {output_file}")
+    output = create_program('ALL', 10000, annotated=True)
     with open(output_file, 'w') as f:
         json.dump(output, f, indent=4)
     print(f"Output saved to {output_file}")
