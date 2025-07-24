@@ -194,7 +194,6 @@ class CodeGenerator:
         generated_programs = 0
         hashes = set()
         
-        start_time = time.time()
         max_tries = 1000
         num_tries = 0
         
