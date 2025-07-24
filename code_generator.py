@@ -41,7 +41,41 @@ class CodeGenerator:
         self.var_count = 0
         self.grammer = get_grammer()
     
-    def generate_code(self, symbol, current_variables, used_variables: set, parent=None):
+    def get_new_variable(self, current_variables):
+        if self.var_count < self.max_initialized_vars:
+            var_name = random.choice(self.grammer['VARIABLE'])
+            while var_name in current_variables:
+                var_name = random.choice(self.grammer['VARIABLE'])
+            self.var_count += 1
+            return var_name
+        else:
+            return None
+        
+    def get_loop_var(self) -> str:
+        choices = ['i', 'j', 'k']
+        choice = random.choice(choices)
+        return choice
+    def generate_sensical_loop_range(self):
+        start = random.randint(1, 10)
+        end = random.randint(start - 10, start + 10)
+        if start == end: 
+            end += 1 if random.choice([True, False]) else -1
+        step = random.choice([1, 2, 3])
+        if start > end:
+            relational_operator = random.choice(['>', '>='])
+            if step > 1:
+                operator_step = f'-={step}'
+            else:
+                operator_step = '--'
+        else:
+            relational_operator = random.choice(['<', '<='])
+            if step > 1:
+                operator_step = f'+={step}'
+            else:
+                operator_step = '++'
+        return str(start), str(end), relational_operator, operator_step
+
+    def generate_code(self, symbol, current_variables, used_variables: set, parent=None, recursive=True):
         node = Node(symbol, parent=parent)
         if symbol in self.grammer:
             if symbol == 'IDENTIFIER_INITIALIZATION':
@@ -53,12 +87,27 @@ class CodeGenerator:
             rule = random.choice(self.grammer[symbol])
             symbols = rule.split()
             
+            if not recursive:
+                generated_symbols = [s for s in symbols if s not in ['NEW_LINE', 'SPACE', 'TAB']]
+                return ''.join(generated_symbols)
+            
             generated_symbols = [self.generate_code(s, current_variables, used_variables, node) for s in symbols]
                         
             if symbol == 'INITIALIZATION':
                 var_name = generated_symbols[3]
                 variable_val = generated_symbols[7] # Check grammer rules for a sanity check
                 current_variables[var_name] = variable_val
+            
+            if symbol == 'FOR_SIMPLE':
+                f_start, f_end, f_operator, f_step = self.generate_sensical_loop_range()
+                loop_var_name = self.get_loop_var()
+                generated_symbols = [s
+                    .replace('FIXED_VAR', loop_var_name)
+                    .replace('FIXED_DIGIT_1', f_start, 1)
+                    .replace('FIXED_DIGIT_2', f_end, 1)
+                    .replace('FIXED_DIGIT_3', f_step, 1)
+                    .replace('FIXED_RELATIONAL_OPERATOR', f_operator, 1)
+                    for s in generated_symbols]
             
             if symbol == 'ASSIGNMENT_SIMPLE' or symbol == 'ASSIGNMENT_COMPLEX':
                 if len(generated_symbols) >= 4:
@@ -78,7 +127,7 @@ class CodeGenerator:
                 tuple(current_variables.keys()) if current_variables 
                 else random.choice(self.grammer['DIGIT'])
             )
-            return identifier
+            return identifier    
     
         elif symbol == 'DISPLAY_IDENTIFIER':
             try:

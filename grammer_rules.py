@@ -1,13 +1,18 @@
+import random
+
+
 
 
 grammer_rules: dict[str, list[str]] = {
     # Variable values
-    "VARIABLE": ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"],
+    "VARIABLE": ["a", "b", "c", "d", "e", "f", "g", "h", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"],
     "DIGIT": [str(i) for i in range(256)],
+    "VALUE": ['VARIABLE', "DIGIT"],
     
     # Arithmetics and operators
     "ARITHMETIC_OPERATOR": ["+", "-", "*", "/", "%", "**"],
     "RELATIONAL_OPERATOR": ["===", "!=", "<", ">", "<=", ">="],
+    "INC_DEC_OPERATOR": ["++", "--"],
     "LOGICAL_OPERATOR_PREFIX": ["!"],
     "LOGICAL_OPERATOR_INFIX": ["&&", "||"],
     "LOGICAL_OPERATOR": ["LOGICAL_OPERATOR_PREFIX", "LOGICAL_OPERATOR_INFIX"],
@@ -23,6 +28,7 @@ grammer_rules: dict[str, list[str]] = {
     "BRACKET_CLOSE": ["}"],
     "EQUALS": ["="],
     "COLON": [":"],
+    "SEMICOLON": [";"],
     "COMMA": [","],
 
     # Keywords
@@ -80,6 +86,19 @@ grammer_rules: dict[str, list[str]] = {
     "ELSE_IF_COMPLEX": ['NEW_LINE ELSE SPACE IF PARENTHESIS_OPEN CHAIN_CONDITION PARENTHESIS_CLOSE SPACE BRACKET_OPEN'],
     "ELSE_SIMPLE": ['NEW_LINE ELSE SPACE BRACKET_OPEN'],
     
+    # For loops
+    "FOR_INIT": [''],
+    "FOR_UPDATE": ['ASSIGNMENT_SIMPLE', 'ASSIGNMENT_COMPLEX'],
+    "FOR_SIMPLE": [
+        'NEW_LINE FOR PARENTHESIS_OPEN \
+        DEFINE_VAR SPACE FIXED_VAR SPACE EQUALS SPACE FIXED_DIGIT_1 \
+        SEMICOLON SPACE \
+        FIXED_VAR SPACE FIXED_RELATIONAL_OPERATOR SPACE FIXED_DIGIT_2 \
+        SEMICOLON SPACE \
+        FIXED_VAR FIXED_DIGIT_3 \
+        PARENTHESIS_CLOSE SPACE BRACKET_OPEN'
+    ], # For FIXED_DIGIT, the third one is actually for inc/dec operators
+    
     
     'DISPLAY_SIMPLE': ['NEW_LINE PRINT PARENTHESIS_OPEN DISPLAY_IDENTIFIER PARENTHESIS_CLOSE'],
     'DISPLAY_SIMPLE_TABBED': ['NEW_LINE TAB PRINT PARENTHESIS_OPEN DISPLAY_IDENTIFIER PARENTHESIS_CLOSE'],
@@ -94,8 +113,11 @@ grammer_rules: dict[str, list[str]] = {
         'IDENTIFIER_INITIALIZATION IF_SIMPLE DISPLAY_SIMPLE_TABBED BRACKET_CLOSE ELSE_IF_SIMPLE DISPLAY_SIMPLE_TABBED BRACKET_CLOSE ELSE_SIMPLE DISPLAY_SIMPLE_TABBED BRACKET_CLOSE',
         'IDENTIFIER_INITIALIZATION IF_SIMPLE DISPLAY_SIMPLE_TABBED BRACKET_CLOSE ELSE_SIMPLE DISPLAY_SIMPLE_TABBED BRACKET_CLOSE',
     ],
+    "LEVEL_3.1": [
+        'IDENTIFIER_INITIALIZATION FOR_SIMPLE DISPLAY_COMPLEX BRACKET_CLOSE',
+    ],
     
-    "ALL": ['LEVEL_1.1', 'LEVEL_1.2', 'LEVEL_2.1'],
+    "ALL": ['LEVEL_1.1', 'LEVEL_1.2', 'LEVEL_2.1', 'LEVEL_3.1'],
 }
 
 def get_grammer(): return grammer_rules
