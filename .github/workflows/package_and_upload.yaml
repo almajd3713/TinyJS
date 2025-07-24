@@ -20,4 +20,4 @@ jobs:
         run: pip install --upgrade build && python -m build
 
       - name: Upload package to pypi
-        uses: pypa/gh-action-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@release/v1
