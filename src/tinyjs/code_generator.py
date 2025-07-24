@@ -1,5 +1,5 @@
 from anytree import Node, RenderTree
-from src.tiny_js.grammer_rules import get_grammer
+from .grammer_rules import get_grammer
 from dataclasses import dataclass
 from tqdm.auto import tqdm
 import traceback
