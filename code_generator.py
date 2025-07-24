@@ -109,6 +109,19 @@ class CodeGenerator:
                     .replace('FIXED_RELATIONAL_OPERATOR', f_operator, 1)
                     for s in generated_symbols]
             
+            if symbol == 'WHILE_SIMPLE':
+                loop_var_name = self.get_loop_var()
+                f_start, f_end, f_operator, f_step = self.generate_sensical_loop_range()
+                while_end = f'NEW_LINE {loop_var_name} {f_step}'
+                fixed_loop_assignment = f'NEW_LINE {loop_var_name} = {f_start}'
+                generated_symbols = [s
+                    .replace('FIXED_LOOP_ASSIGNMENT', fixed_loop_assignment, 1)
+                    .replace('FIXED_VAR', loop_var_name)
+                    .replace('FIXED_RELATIONAL_OPERATOR', f_operator, 1)
+                    .replace('FIXED_DIGIT', f_end, 1)
+                    .replace('WHILE_END', while_end, 1)
+                    for s in generated_symbols]
+            
             if symbol == 'ASSIGNMENT_SIMPLE' or symbol == 'ASSIGNMENT_COMPLEX':
                 if len(generated_symbols) >= 4:
                     selected_var = generated_symbols[1]
