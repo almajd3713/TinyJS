@@ -1,0 +1,19 @@
+[project]
+name = "tinyjs"
+version = "0.1.0"
+description = "A tiny JavaScript code generator"
+authors = [{name = "almajd3713", email = "almajd3713@gmail.com"}]
+license = "MIT"
+readme = "README.md"
+requires-python = ">=3.9"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["tinyjs*"]
