@@ -30,7 +30,7 @@ if (fs.existsSync(errorLogPath)) {
     fs.unlinkSync(errorLogPath);
 }
 
-const programs = JSON.parse(fs.readFileSync(path.join('output', 'output_raw.json'), 'utf8'))
+const programs = JSON.parse(fs.readFileSync('temp_input.json', 'utf8'))
 
 const new_programs = programs.map(program => {
     const code = program.script
@@ -46,4 +46,4 @@ const new_programs = programs.map(program => {
 
 console.log(programs.length - new_programs.length, 'programs were dropped');
 
-fs.writeFileSync(path.join('output', 'output.json'), JSON.stringify(new_programs, null, 4), 'utf8')
+fs.writeFileSync('temp_output.json', JSON.stringify(new_programs, null, 4), 'utf8')

@@ -1,5 +1,5 @@
 from anytree import Node, RenderTree
-from grammer_rules import get_grammer
+from src.tiny_js.grammer_rules import get_grammer
 from dataclasses import dataclass
 from tqdm.auto import tqdm
 import traceback
@@ -10,6 +10,7 @@ import hashlib
 import os
 import json
 import random
+import subprocess
 
 DEBUG = False
 DEBUG_ERRORS = True
@@ -18,6 +19,7 @@ DEBUG_ERRORS = True
 class Program:
     script: str
     output: str
+    level: str
     hash: str
     initialized_variables: dict = None
     used_variables: set = None
@@ -26,6 +28,7 @@ class Program:
         return {
             'script': self.script,
             'output': self.output,
+            'level': self.level,
             'hash': self.hash,
             'initialized_variables': self.initialized_variables if self.initialized_variables else {},
             'used_variables': list(self.used_variables) if self.used_variables else []
@@ -171,10 +174,16 @@ class CodeGenerator:
                 self.max_initialized_vars = 3
             case '2.1':
                 self.max_initialized_vars = 2
+            case '3.1':
+                self.max_initialized_vars = 2
+            case '3.2':
+                self.max_initialized_vars = 4
+            case '4.1':
+                self.max_initialized_vars = 2
             case 'ALL':
                 self.max_initialized_vars = 5
         
-        if level == 'ALL': level_passed = level
+        if level == 'ALL': level_passed = random.choice(self.grammer['LEVEL'])
         else: level_passed = f'LEVEL_{level}'
         
         program = self.generate_code(level_passed, current_variables, used_variables, root)
@@ -184,9 +193,9 @@ class CodeGenerator:
             .replace('NEW_LINE', '\n') \
             .replace('TAB', '\t')\
             .lstrip()
-        return root, program, current_variables, used_variables
+        return root, program, current_variables, used_variables, level_passed
     
-    def generate_and_write_program(self, num_programs, level, output_file='output/output_raw.json', deduplicate=True):
+    def generate_and_write_program(self, num_programs, level, deduplicate=True):
         output_dict = [] # Hash, script, output
         generated_programs = 0
         hashes = set()
@@ -200,12 +209,12 @@ class CodeGenerator:
         
         while generated_programs < num_programs:
             try:
-                root, script, initialized_variables, used_variables = self.generate_program(level)
+                root, script, initialized_variables, used_variables, level = self.generate_program(level)
                 if DEBUG:
                     self.print_tree(root)
                 program_hash = hashlib.sha256(script.encode('utf-8')).hexdigest()
 
-                program = Program(script=script, output='', hash=program_hash, initialized_variables=initialized_variables, used_variables=used_variables)
+                program = Program(script=script, output='', hash=program_hash, level=level, initialized_variables=initialized_variables, used_variables=used_variables)
                 
                 if deduplicate:
                     if program_hash not in hashes:
@@ -224,11 +233,42 @@ class CodeGenerator:
                     print(f"Error generating program: {e}")
                     traceback.print_exc()
                 continue
-        
-        with open(output_file, 'w') as f:
-            json.dump(output_dict, f, indent=4)
+    
+        return output_dict
                     
-            
+def create_program(level, count, annotated = False):
+    generator = CodeGenerator()
+    output = generator.generate_and_write_program(count, level, deduplicate=True)
+    if annotated:
+        return annotate_program(output, level)
+    return output
+
+def annotate_program(input_dict, level='ALL'):
+    # Check if nodejs is in environment
+    if 'nodejs' not in os.environ.get('PATH', ''):
+        raise EnvironmentError("Node.js is not installed or not in PATH.")
+    # Save input into temporary json file
+    temp_input_file = 'temp_input.json'
+    with open(temp_input_file, 'w') as f:
+        json.dump(input_dict, f, indent=4)
+    # Run the nodejs script to annotate the program
+    required_amount = len(input_dict)
+    output_list = []
+    subprocess.run(['npm', 'run', 'annotate'], check=True)
+    # Read temporary output file
+    temp_output_file = 'temp_output.json'
+    with open(temp_output_file, 'r') as f:
+        output_dict = json.load(f)
+    # Check if its the same length, otherwise create more programs
+    if len(output_dict) < required_amount:
+        additional_output = create_program(level, required_amount - len(output_dict), annotated=True)
+        output_dict.extend(additional_output)
+    # Remove temp files
+    os.remove(temp_input_file)
+    os.remove(temp_output_file)
+    return output_dict
+    
+
 def main():
     generator = CodeGenerator()
     num_programs = 1000
@@ -238,8 +278,11 @@ def main():
     if not os.path.exists('output'):
         os.makedirs('output')
     
-    generator.generate_and_write_program(num_programs, level, output_file, deduplicate=True)
+    output = generator.generate_and_write_program(num_programs, level, deduplicate=True)
     print(f"Generated {num_programs} programs at level {level} and saved to {output_file}")
+    with open(output_file, 'w') as f:
+        json.dump(output, f, indent=4)
+    print(f"Output saved to {output_file}")
     
 if __name__ == "__main__":
     main()

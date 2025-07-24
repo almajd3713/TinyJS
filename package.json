@@ -4,7 +4,7 @@
   "description": "",
   "main": "code_annotation.js",
   "scripts": {
-    "annotate": "node code_annotation.js"
+    "annotate": "node src/TinyJS/code_annotation.js"
   },
   "repository": {
     "type": "git",
