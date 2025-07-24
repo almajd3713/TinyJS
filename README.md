@@ -19,6 +19,10 @@ annotated_program_list = create_program(level="ALL", count=1000, annotated=True)
 
 > Note: Annotation requires NodeJS to be installed! Annotation happens by evaluating the code, and for reliability, this was handled by native NodeJS instead
 
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
+
 ## Acknowledgements
 This project is a modified port of the TinyJS generator by Kamel Yamani et al., 2021
 - [Link to the github page of the project](https://github.com/MarwaNair/TinyPy-Generator)
