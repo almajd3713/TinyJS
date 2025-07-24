@@ -6,6 +6,10 @@ authors = [{name = "almajd3713", email = "almajd3713@gmail.com"}]
 license = "MIT"
 readme = "README.md"
 requires-python = ">=3.9"
+dependencies = [
+    "anytree==2.13.0",
+    "tqdm==4.67.1"
+]
 
 [build-system]
 requires = ["setuptools>=61.0"]

@@ -4,8 +4,6 @@ from dataclasses import dataclass
 from tqdm.auto import tqdm
 import traceback
 
-import psutil
-import time
 import hashlib
 import os
 import json
@@ -153,11 +151,6 @@ class CodeGenerator:
         
         else: return symbol;
     
-    def memory_usage(self):
-        process = psutil.Process(os.getpid())
-        mem = process.memory_info().rss / (1024 * 1024)
-        return mem
-    
     def print_tree(self, root):
         for pre, _, node in RenderTree(root):
             print(f"{pre}{node.name}")
@@ -183,8 +176,9 @@ class CodeGenerator:
             case 'ALL':
                 self.max_initialized_vars = 5
         
-        if level == 'ALL': level_passed = random.choice(self.grammer['LEVEL'])
-        else: level_passed = f'LEVEL_{level}'
+        if level == 'ALL': level_passed = random.choice(self.grammer['ALL'])
+        elif level in ['1.1', '1.2', '2.1', '2.2', '3.1', '3.2', '4.1']: level_passed = f'LEVEL_{level}'
+        else: level_passed = level
         
         program = self.generate_code(level_passed, current_variables, used_variables, root)
         
@@ -201,7 +195,6 @@ class CodeGenerator:
         hashes = set()
         
         start_time = time.time()
-        start_mem = self.memory_usage()
         max_tries = 1000
         num_tries = 0
         
